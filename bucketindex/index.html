@@ -1,0 +1,35 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My GCP Bucket Browser</title>
+</head>
+<body>
+    <h1>Browse My GCP Bucket</h1>
+    <ul id="file-list">
+        <!-- Files will be listed here -->
+    </ul>
+</body>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+    var bucketName = 'skelsec-github-foss';
+    var apiUrl = 'https://storage.googleapis.com/storage/v1/b/' + bucketName + '/o';
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            var fileList = document.getElementById('file-list');
+            data.items.forEach(item => {
+                var li = document.createElement('li');
+                li.textContent = item.name;
+                fileList.appendChild(li);
+            });
+        })
+        .catch(error => console.error('Error:', error));
+});
+</script>
+
+</html>
+

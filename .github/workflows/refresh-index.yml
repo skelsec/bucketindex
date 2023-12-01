@@ -1,0 +1,32 @@
+name: Uploads website code to GCS
+
+on:
+  push:
+    branches:
+      - main # Trigger on push to master branch
+
+jobs:
+  build:
+    runs-on: windows-latest # Use a Windows runner
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    
+    steps:        
+    - uses: 'actions/checkout@v4'
+      with:
+        fetch-depth: 0
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: '${{ secrets.GCLOUD_BUCKET_SERVICE_USER_SECRET }}'
+        
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v1'
+      with:
+        version: '>= 390.0.0'
+
+    - name: Upload website to GCS
+      run: |
+        gsutil cp bucketindex\* gs://skelsec-github-foss/${{ github.event.repository.name }}/
+      shell: powershell
