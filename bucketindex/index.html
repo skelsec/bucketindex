@@ -22,7 +22,7 @@
         .then(response => response.json())
         .then(data => {
             var directoryStructure = createDirectoryTree(data.items);
-            renderDirectoryStructure(directoryStructure);
+            renderDirectory(directoryStructure, document.getElementById('file-list'));
         })
         .catch(error => console.error('Error:', error));
 
@@ -31,36 +31,37 @@
         files.forEach(file => {
             var path = file.name.split('/');
             var currentNode = tree;
-            path.forEach((part, index) => {
-                if (!currentNode[part]) {
-                    currentNode[part] = (index === path.length - 1) ? file : {};
+            for (let i = 0; i < path.length; i++) {
+                if (!currentNode[path[i]]) {
+                    currentNode[path[i]] = i === path.length - 1 ? file : {};
                 }
-                currentNode = currentNode[part];
-            });
+                currentNode = currentNode[path[i]];
+            }
         });
         return tree;
     }
 
-    function renderDirectoryStructure(node, path = '') {
-        var fileList = document.getElementById('file-list');
-        Object.keys(node).forEach(key => {
-            var li = document.createElement('li');
-            if (typeof node[key] === 'object' && Object.keys(node[key]).length > 0) {
-                li.textContent = key;
-                fileList.appendChild(li);
-                renderDirectoryStructure(node[key], path + key + '/');
-            } else {
-                var a = document.createElement('a');
-                a.textContent = key;
-                a.href = baseUrl + path + key;
-                a.download = key;
-                li.appendChild(a);
-                fileList.appendChild(li);
+    function renderDirectory(node, parentElement) {
+        if (typeof node === 'object' && Object.keys(node).length > 0) {
+            var ul = document.createElement('ul');
+            parentElement.appendChild(ul);
+            for (var key in node) {
+                var li = document.createElement('li');
+                ul.appendChild(li);
+                if (node[key].name) { // This is a file
+                    var a = document.createElement('a');
+                    a.textContent = key;
+                    a.href = baseUrl + node[key].name;
+                    a.download = key;
+                    li.appendChild(a);
+                } else { // This is a directory
+                    li.textContent = key;
+                    renderDirectory(node[key], li);
+                }
             }
-        });
+        }
     }
 });
-
 </script>
 
 </html>
