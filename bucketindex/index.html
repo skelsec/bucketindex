@@ -15,20 +15,52 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
     var bucketName = 'skelsec-github-foss';
+    var baseUrl = 'https://storage.googleapis.com/' + bucketName + '/';
     var apiUrl = 'https://storage.googleapis.com/storage/v1/b/' + bucketName + '/o';
 
     fetch(apiUrl)
         .then(response => response.json())
         .then(data => {
-            var fileList = document.getElementById('file-list');
-            data.items.forEach(item => {
-                var li = document.createElement('li');
-                li.textContent = item.name;
-                fileList.appendChild(li);
-            });
+            var directoryStructure = createDirectoryTree(data.items);
+            renderDirectoryStructure(directoryStructure);
         })
         .catch(error => console.error('Error:', error));
+
+    function createDirectoryTree(files) {
+        var tree = {};
+        files.forEach(file => {
+            var path = file.name.split('/');
+            var currentNode = tree;
+            path.forEach((part, index) => {
+                if (!currentNode[part]) {
+                    currentNode[part] = (index === path.length - 1) ? file : {};
+                }
+                currentNode = currentNode[part];
+            });
+        });
+        return tree;
+    }
+
+    function renderDirectoryStructure(node, path = '') {
+        var fileList = document.getElementById('file-list');
+        Object.keys(node).forEach(key => {
+            var li = document.createElement('li');
+            if (typeof node[key] === 'object' && Object.keys(node[key]).length > 0) {
+                li.textContent = key;
+                fileList.appendChild(li);
+                renderDirectoryStructure(node[key], path + key + '/');
+            } else {
+                var a = document.createElement('a');
+                a.textContent = key;
+                a.href = baseUrl + path + key;
+                a.download = key;
+                li.appendChild(a);
+                fileList.appendChild(li);
+            }
+        });
+    }
 });
+
 </script>
 
 </html>
